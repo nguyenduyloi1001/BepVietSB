@@ -1,5 +1,6 @@
 package com.example.Bep_Viet.service.Imp;
 
+import com.example.Bep_Viet.enums.NotificationType;
 import com.example.Bep_Viet.exception.AppException;
 import com.example.Bep_Viet.exception.ErrorCode;
 import com.example.Bep_Viet.model.User;
@@ -8,6 +9,7 @@ import com.example.Bep_Viet.model.UserFollowId;
 import com.example.Bep_Viet.repository.UserFollowRepository;
 import com.example.Bep_Viet.repository.UserRepository;
 import com.example.Bep_Viet.response.UserResponse;
+import com.example.Bep_Viet.service.NotificationService;
 import com.example.Bep_Viet.service.UserFollowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,7 +24,7 @@ public class UserFollowServiceImpl implements UserFollowService {
 
     private final UserFollowRepository userFollowRepository;
     private final UserRepository userRepository;
-    //private final NotificationService notificationService;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -46,14 +48,14 @@ public class UserFollowServiceImpl implements UserFollowService {
                 .following(following)
                 .build());
 
-        // ✅ Gửi thông báo cho người được follow
-//        notificationService.send(
-//                followingId,
-//                followerId,
-//                NotificationType.NEW_FOLLOWER,
-//                followerId,
-//                null          // targetType = null (không cần với new_follower)
-//        );
+//         Gửi thông báo cho người được follow
+        notificationService.send(
+                followingId,
+                followerId,
+                NotificationType.NEW_FOLLOWER,
+                followerId,
+                null          // targetType = null (không cần với new_follower)
+        );
     }
 
     @Override

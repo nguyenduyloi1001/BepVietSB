@@ -1,6 +1,7 @@
 package com.example.Bep_Viet.service.Imp;
 
 import com.example.Bep_Viet.enums.NotificationTargetType;
+import com.example.Bep_Viet.enums.NotificationType;
 import com.example.Bep_Viet.enums.TargetType;
 import com.example.Bep_Viet.exception.AppException;
 import com.example.Bep_Viet.exception.ErrorCode;
@@ -15,6 +16,7 @@ import com.example.Bep_Viet.request.CommentRequest;
 import com.example.Bep_Viet.response.CommentResponse;
 
 import com.example.Bep_Viet.service.CommentService;
+import com.example.Bep_Viet.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -28,7 +30,7 @@ public class CommentServiceImpl implements CommentService {
     private final UserRepository userRepository;
     private final RecipeRepository recipeRepository;
     private final PostRepository postRepository;
-//    private final NotificationService notificationService;
+    private final NotificationService notificationService;
 
     @Override
     public CommentResponse create(CommentRequest request, Long userId) {
@@ -52,32 +54,30 @@ public class CommentServiceImpl implements CommentService {
         Comment saved = commentRepository.save(comment);
 
 //        // ─── Gửi thông báo ───────────────────────────────────────
-////        NotificationTargetType notifTargetType = mapToNotifTargetType(request.getTargetType());
-//
-//        if (parent != null) {
-//            // Reply → báo cho chủ comment gốc (new_answer)
-//            notificationService.send(
-//                    parent.getUser().getId(),
-//                    userId,
-//                    NotificationType.NEW_ANSWER,
-//                    saved.getId(),
-//                    notifTargetType
-//            );
-//        } else {
-//            // Comment mới → báo cho chủ bài (new_comment)
-//            Long contentOwnerId = resolveContentOwnerId(request.getTargetType(), request.getTargetId());
-//            if (contentOwnerId != null) {
-//                notificationService.send(
-//                        contentOwnerId,
-//                        userId,
-//                        NotificationType.NEW_COMMENT,
-//                        request.getTargetId(),
-//                        notifTargetType
-//                );
-//            }
-//        }
-        // ─────────────────────────────────────────────────────────
+        NotificationTargetType notifTargetType = mapToNotifTargetType(request.getTargetType());
 
+        if (parent != null) {
+            // Reply → báo cho chủ comment gốc (new_answer)
+            notificationService.send(
+                    parent.getUser().getId(),
+                    userId,
+                    NotificationType.NEW_ANSWER,
+                    saved.getId(),
+                    notifTargetType
+            );
+        } else {
+            // Comment mới → báo cho chủ bài (new_comment)
+            Long contentOwnerId = resolveContentOwnerId(request.getTargetType(), request.getTargetId());
+            if (contentOwnerId != null) {
+                notificationService.send(
+                        contentOwnerId,
+                        userId,
+                        NotificationType.NEW_COMMENT,
+                        request.getTargetId(),
+                        notifTargetType
+                );
+            }
+        }
         return mapToResponse(saved);
     }
 

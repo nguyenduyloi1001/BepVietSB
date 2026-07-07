@@ -6,9 +6,7 @@ import com.example.Bep_Viet.exception.ErrorCode;
 import com.example.Bep_Viet.model.Category;
 import com.example.Bep_Viet.model.Recipe;
 import com.example.Bep_Viet.model.User;
-import com.example.Bep_Viet.repository.CategoryRepository;
-import com.example.Bep_Viet.repository.RecipeRepository;
-import com.example.Bep_Viet.repository.UserRepository;
+import com.example.Bep_Viet.repository.*;
 import com.example.Bep_Viet.request.RecipeRequest;
 import com.example.Bep_Viet.response.RecipeIngredientResponse;
 import com.example.Bep_Viet.response.RecipeResponse;
@@ -32,8 +30,8 @@ public class RecipeServiceImpl implements RecipeService {
     private final CategoryRepository categoryRepository;
     private final RecipeIngredientService recipeIngredientService;
     private final RecipeStepService recipeStepService;
-//    private final RatingRepository ratingRepository;
-//    private final MealPlanItemRepository mealPlanItemRepository;
+    private final RatingRepository ratingRepository;
+    private final MealPlanItemRepository mealPlanItemRepository;
 
     private static final int CHEF_PRIORITY_DAYS = 30;
 
@@ -135,7 +133,7 @@ public class RecipeServiceImpl implements RecipeService {
 
         Recipe saved = repository.save(recipe);
 
-        // ✅ ADD THESE - clear old, insert new
+
         recipeIngredientService.deleteByRecipeId(saved.getId());
         recipeIngredientService.addAll(saved, request.getIngredients());
 
@@ -153,8 +151,8 @@ public class RecipeServiceImpl implements RecipeService {
             throw new AppException(ErrorCode.RECIPE_FORBIDDEN);
         }
 
-//        mealPlanItemRepository.deleteByRecipeId(id);
-//        ratingRepository.deleteByRecipeId(id);
+        mealPlanItemRepository.deleteByRecipeId(id);
+        ratingRepository.deleteByRecipeId(id);
         repository.delete(recipe);
     }
 
