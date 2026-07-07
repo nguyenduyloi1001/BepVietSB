@@ -42,7 +42,6 @@ public class AuthenticationImpl implements AuthenticationService {
     OtpService otpService;
     UserService userService;
 
-    // Cache lưu tạm thông tin đăng ký chờ verify OTP
     com.github.benmanes.caffeine.cache.Cache<String, UserRequest> pendingRegisterCache =
             com.github.benmanes.caffeine.cache.Caffeine.newBuilder()
                     .expireAfterWrite(10, java.util.concurrent.TimeUnit.MINUTES)

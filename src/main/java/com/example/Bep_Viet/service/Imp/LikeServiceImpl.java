@@ -1,5 +1,7 @@
 package com.example.Bep_Viet.service.Imp;
 
+import com.example.Bep_Viet.enums.NotificationTargetType;
+import com.example.Bep_Viet.enums.NotificationType;
 import com.example.Bep_Viet.model.Like;
 import com.example.Bep_Viet.repository.LikeRepository;
 import com.example.Bep_Viet.repository.PostRepository;
@@ -7,6 +9,7 @@ import com.example.Bep_Viet.repository.RecipeRepository;
 import com.example.Bep_Viet.request.LikeRequest;
 import com.example.Bep_Viet.response.LikeResponse;
 import com.example.Bep_Viet.service.LikeService;
+import com.example.Bep_Viet.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,7 +23,7 @@ public class LikeServiceImpl implements LikeService {
     private final LikeRepository likeRepository;
     private final RecipeRepository recipeRepository;
     private final PostRepository postRepository;
-//    private final NotificationService notificationService;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -43,17 +46,17 @@ public class LikeServiceImpl implements LikeService {
                     .build());
             liked = true;
 
-            // ✅ Gửi thông báo khi LIKE (không gửi khi unlike)
+            //  Gửi thông báo khi LIKE (không gửi khi unlike)
             Long ownerId = resolveOwnerId(type, targetId);
-//            if (ownerId != null) {
-//                notificationService.send(
-//                        ownerId,
-//                        userId,
-//                        NotificationType.NEW_LIKE,
-//                        targetId,
-//                        mapToNotifTargetType(type)
-//                );
-//            }
+            if (ownerId != null) {
+                notificationService.send(
+                        ownerId,
+                        userId,
+                        NotificationType.NEW_LIKE,
+                        targetId,
+                        mapToNotifTargetType(type)
+                );
+            }
         }
 
         long total = likeRepository.countByTargetIdAndTargetType(targetId, type);
@@ -96,9 +99,9 @@ public class LikeServiceImpl implements LikeService {
         return null;
     }
 
-//    private NotificationTargetType mapToNotifTargetType(Like.TargetType type) {
-//        if (type == Like.TargetType.recipe)  return NotificationTargetType.recipe;
-//        if (type == Like.TargetType.post)    return NotificationTargetType.post;
-//        return NotificationTargetType.post;
-//    }
+    private NotificationTargetType mapToNotifTargetType(Like.TargetType type) {
+        if (type == Like.TargetType.recipe)  return NotificationTargetType.recipe;
+        if (type == Like.TargetType.post)    return NotificationTargetType.post;
+        return NotificationTargetType.post;
+    }
 }

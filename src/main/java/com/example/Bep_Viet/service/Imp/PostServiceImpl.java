@@ -6,6 +6,8 @@ import com.example.Bep_Viet.exception.AppException;
 import com.example.Bep_Viet.exception.ErrorCode;
 import com.example.Bep_Viet.model.Post;
 import com.example.Bep_Viet.model.User;
+import com.example.Bep_Viet.repository.CommentRepository;
+import com.example.Bep_Viet.repository.LikeRepository;
 import com.example.Bep_Viet.repository.PostRepository;
 import com.example.Bep_Viet.repository.UserRepository;
 import com.example.Bep_Viet.request.PostRequest;
@@ -22,8 +24,8 @@ import java.util.List;
 public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
-//    private final CommentRepository commentRepository;
-//    private final LikeRepository likeRepository;
+    private final CommentRepository commentRepository;
+    private final LikeRepository likeRepository;
     @Override
     public PostResponse create(PostRequest request, Long userId) {
         User user = userRepository.findById(userId).orElseThrow(()-> new AppException(ErrorCode.USER_NOT_FOUND));
