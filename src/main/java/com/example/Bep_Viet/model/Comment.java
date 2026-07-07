@@ -1,12 +1,13 @@
 package com.example.Bep_Viet.model;
 
 
+import com.example.Bep_Viet.enums.TargetType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.tool.schema.TargetType;
+
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
