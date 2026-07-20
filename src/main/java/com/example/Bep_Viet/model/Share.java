@@ -19,14 +19,14 @@ public class Share {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user; // người đăng lại
+    private User user;
 
     @Column(name = "target_id", nullable = false)
-    private Long targetId; // recipeId hoặc postId
+    private Long targetId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "target_type", nullable = false)
-    private TargetType targetType; // RECIPE hoặc POST
+    private TargetType targetType;
 
     private LocalDateTime createdAt;
 

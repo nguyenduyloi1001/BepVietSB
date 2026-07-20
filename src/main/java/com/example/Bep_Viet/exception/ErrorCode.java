@@ -59,16 +59,25 @@ public enum ErrorCode {
     NOT_ENOUGH_RATING(8008, "Điểm đánh giá trung bình chưa đủ yêu cầu"),
     AI_SERVICE_ERROR(9001, "Lỗi khi gọi AI, vui lòng thử lại sau"),
     AI_NO_SUGGESTION(9002, "Không tìm thấy món ăn phù hợp với nguyên liệu đã nhập"),
-    RECIPE_SHARE_NOT_FOUND(10001, "Không tìm thấy bản đăng lại"),
-    RECIPE_SHARE_ALREADY_EXISTS(10002, "Bạn đã đăng lại công thức này rồi"),
-    RECIPE_SHARE_SELF_NOT_ALLOWED(10003, "Không thể đăng lại công thức của chính mình"),
-    RECIPE_SHARE_NOT_PUBLISHED(10004, "Công thức này chưa được công khai, không thể đăng lại"),
-    RECIPE_SHARE_FORBIDDEN(10005, "Bạn không có quyền xoá bản đăng lại này"),
-    POST_SHARE_NOT_FOUND(10006, "Không tìm thấy bản đăng lại"),
-    POST_SHARE_ALREADY_EXISTS(10007, "Bạn đã đăng lại bài viết này rồi"),
-    POST_SHARE_SELF_NOT_ALLOWED(10008, "Không thể đăng lại bài viết của chính mình"),
-    POST_SHARE_NOT_PUBLISHED(10009, "Bài viết này chưa được công khai, không thể đăng lại"),
-    POST_SHARE_FORBIDDEN(10010, "Bạn không có quyền xoá bản đăng lại này");
+    SESSION_NOT_FOUND(9003, "Phiên chat không tồn tại"),
+    AI_SERV_ERROR(9004, "Lỗi dịch vụ AI, vui lòng thử lại sau"),
+    AI_NO_SUG(9005, "Không tìm thấy công thức phù hợp"),
+    COMMENT_EMPTY(9006,"Comment trống rỗng"),
+    GUEST_SESSION_EXPIRED(9007,"Phiên chat đã hết hạn, vui lòng bắt đầu cuộc trò chuyện mới"),
+    GUEST_ID_REQUIRED(9008,"Thiếu định danh khách, vui lòng thử lại"),
+    RECIPE_SHARE_NOT_PUBLISHED(9009, "Công thức này chưa được đăng, không thể chia sẻ"),
+    RECIPE_SHARE_SELF_NOT_ALLOWED(9010, "Bạn không thể tự chia sẻ công thức của chính mình"),
+    RECIPE_SHARE_ALREADY_EXISTS(9011, "Bạn đã chia sẻ công thức này rồi"),
+    RECIPE_SHARE_NOT_FOUND(9012, "Không tìm thấy lượt chia sẻ công thức này"),
+    RECIPE_SHARE_FORBIDDEN(9013, "Bạn không có quyền thao tác với lượt chia sẻ này"),
+    POST_SHARE_NOT_PUBLISHED(9014, "Bài viết này chưa được đăng, không thể chia sẻ"),
+    POST_SHARE_SELF_NOT_ALLOWED(9015, "Bạn không thể tự chia sẻ bài viết của chính mình"),
+    POST_SHARE_ALREADY_EXISTS(9016, "Bạn đã chia sẻ bài viết này rồi"),
+    POST_SHARE_NOT_FOUND(9017, "Không tìm thấy lượt chia sẻ bài viết này"),
+    POST_SHARE_FORBIDDEN(9018, "Bạn không có quyền thao tác với lượt chia sẻ này");
+
+
+
     private final int code;
     private final String message;
 

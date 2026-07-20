@@ -49,10 +49,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/comments/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/recipes/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll() // 👈 thêm dòng này
+                        .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/ingredients/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/likes/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/user/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
 
                         // Chỉ ADMIN
                         .requestMatchers("/api/posts/*/approve").hasRole("ADMIN")

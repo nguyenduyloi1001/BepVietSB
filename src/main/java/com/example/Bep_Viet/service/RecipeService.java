@@ -7,7 +7,7 @@ import com.example.Bep_Viet.response.RecipeResponse;
 import java.util.List;
 
 public interface RecipeService {
-    RecipeResponse createRecipe(RecipeRequest request, Long userId);
+    RecipeResponse createRecipe(RecipeRequest request,Long userId);
 
     RecipeResponse getRecipeById(Long id);
 
@@ -30,4 +30,7 @@ public interface RecipeService {
     List<RecipeResponse> getByStatus(RecipeStatus status);
 
     List<RecipeResponse> getAllRecipeSorted();
+
+    // ⭐ MỚI: Gợi ý recipe cá nhân hóa dựa trên user_preferences (favorite_ingredients + diet)
+    List<RecipeResponse> getForYou(Long userId);
 }
