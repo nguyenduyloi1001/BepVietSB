@@ -19,6 +19,8 @@ public class CommentResponse {
     private Long parentId;
     private String content;
     private List<CommentResponse> replies;
+    private String imageUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
+

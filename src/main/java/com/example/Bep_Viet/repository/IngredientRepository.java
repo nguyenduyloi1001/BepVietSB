@@ -23,4 +23,17 @@ public interface IngredientRepository extends JpaRepository<Ingredient,Long> {
             @Param("categoryId") Long categoryId);
 
     List<Ingredient> findByNameContainingIgnoreCase(String keyword);
+
+
+    Optional<Ingredient> findByNameIgnoreCase(String name);
+
+    // MỚI: dùng cho chat AI match theo TỪ ĐẦU TIÊN của tên nguyên liệu
+    // (vd "cá" khớp "Cá hồi", "Cá thu"nhưng k khớp "Cà rốt", "Cải xanh"
+    // vì khác từ đầu, tránh lỗi fold dấu thanh điệu của MySQL collation)
+    @Query(value = """
+        SELECT * FROM ingredient
+        WHERE LOWER(name) = LOWER(:keyword)
+           OR LOWER(name) LIKE CONCAT(LOWER(:keyword), ' %')
+        """, nativeQuery = true)
+    List<Ingredient> findByNameStartingWithWord(@Param("keyword") String keyword);
 }

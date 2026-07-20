@@ -3,9 +3,7 @@ package com.example.Bep_Viet.service.Imp;
 import com.example.Bep_Viet.enums.RecipeStatus;
 import com.example.Bep_Viet.exception.AppException;
 import com.example.Bep_Viet.exception.ErrorCode;
-import com.example.Bep_Viet.model.Category;
-import com.example.Bep_Viet.model.Recipe;
-import com.example.Bep_Viet.model.User;
+import com.example.Bep_Viet.model.*;
 import com.example.Bep_Viet.repository.*;
 import com.example.Bep_Viet.request.RecipeRequest;
 import com.example.Bep_Viet.response.RecipeIngredientResponse;
@@ -15,12 +13,19 @@ import com.example.Bep_Viet.service.RecipeIngredientService;
 import com.example.Bep_Viet.service.RecipeService;
 import com.example.Bep_Viet.service.RecipeStepService;
 import com.example.Bep_Viet.util.SlugUtil;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +37,9 @@ public class RecipeServiceImpl implements RecipeService {
     private final RecipeStepService recipeStepService;
     private final RatingRepository ratingRepository;
     private final MealPlanItemRepository mealPlanItemRepository;
+    private final UserPreferenceRepository userPreferenceRepository; // ⭐ MỚI
+    private final IngredientRepository ingredientRepository;         // ⭐ MỚI
+    private final ObjectMapper objectMapper;                         // ⭐ MỚI
 
     private static final int CHEF_PRIORITY_DAYS = 30;
 
@@ -133,7 +141,6 @@ public class RecipeServiceImpl implements RecipeService {
 
         Recipe saved = repository.save(recipe);
 
-
         recipeIngredientService.deleteByRecipeId(saved.getId());
         recipeIngredientService.addAll(saved, request.getIngredients());
 
@@ -190,6 +197,85 @@ public class RecipeServiceImpl implements RecipeService {
                 .toList();
     }
 
+    // =========================================================
+    // ⭐ MỚI: Gợi ý cá nhân hóa dựa trên user_preferences
+    // =========================================================
+    @Override
+    @Transactional(readOnly = true)
+    public List<RecipeResponse> getForYou(Long userId) {
+        List<UserPreference> prefs = userPreferenceRepository.findByUserId(userId);
+
+        if (prefs.isEmpty()) {
+            return getFallbackFeed();
+        }
+
+        List<String> topIngredients = new ArrayList<>();
+        String dietMode = "ANY";
+
+        for (UserPreference p : prefs) {
+            if ("favorite_ingredients".equals(p.getPreferenceKey())) {
+                try {
+                    Map<String, Integer> freqMap = objectMapper.readValue(
+                            p.getPreferenceValue(), new TypeReference<Map<String, Integer>>() {});
+                    topIngredients = freqMap.entrySet().stream()
+                            .sorted((a, b) -> b.getValue() - a.getValue())
+                            .limit(5)
+                            .map(Map.Entry::getKey)
+                            .toList();
+                } catch (Exception e) {
+                    // lỗi parse thì bỏ qua, coi như chưa có ingredient
+                }
+            } else if ("diet".equals(p.getPreferenceKey())) {
+                String dietRaw = p.getPreferenceValue().trim().toLowerCase();
+                if ("chay".equals(dietRaw)) {
+                    dietMode = "CHAY";
+                } else if ("man".equals(dietRaw) || "mặn".equals(dietRaw)) {
+                    dietMode = "MAN";
+                }
+            }
+        }
+
+        if (topIngredients.isEmpty()) {
+            return getFallbackFeed();
+        }
+
+        List<String> expandedIngredients = topIngredients.stream()
+                .flatMap(keyword -> ingredientRepository
+                        .findByNameContainingIgnoreCase(keyword)
+                        .stream()
+                        .map(Ingredient::getName)
+                        .map(String::toLowerCase))
+                .distinct()
+                .toList();
+
+        if (expandedIngredients.isEmpty()) {
+            return getFallbackFeed();
+        }
+
+        List<Long> recipeIds = repository.findRecipeIdsByIngredientsAndDiet(expandedIngredients, dietMode);
+
+        if (recipeIds.isEmpty()) {
+            return getFallbackFeed();
+        }
+
+        List<Recipe> recipes = repository.findAllById(recipeIds);
+        Map<Long, Recipe> recipeMap = recipes.stream()
+                .collect(Collectors.toMap(Recipe::getId, r -> r));
+
+        return recipeIds.stream()
+                .map(recipeMap::get)
+                .filter(Objects::nonNull)
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    private List<RecipeResponse> getFallbackFeed() {
+        return repository.findTopRatedRecipes(PageRequest.of(0, 10))
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
     //helper
     private Recipe findRecipeById(Long id){
         return repository.findById(id).orElseThrow(()->new AppException(ErrorCode.RECIPE_NOT_FOUND));
@@ -238,7 +324,7 @@ public class RecipeServiceImpl implements RecipeService {
                                         .note(ri.getNote())
                                         .build())
                                 .toList())
-                .steps(recipe.getSteps() == null ? null :  // thêm vào đây
+                .steps(recipe.getSteps() == null ? null :
                         recipe.getSteps().stream()
                                 .map(s -> RecipeStepResponse.builder()
                                         .id(s.getId())
