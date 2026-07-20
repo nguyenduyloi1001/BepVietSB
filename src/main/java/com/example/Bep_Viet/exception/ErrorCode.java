@@ -58,7 +58,14 @@ public enum ErrorCode {
     NOT_ENOUGH_RECIPES(8007, "Bạn chưa đủ số công thức yêu cầu"),
     NOT_ENOUGH_RATING(8008, "Điểm đánh giá trung bình chưa đủ yêu cầu"),
     AI_SERVICE_ERROR(9001, "Lỗi khi gọi AI, vui lòng thử lại sau"),
-    AI_NO_SUGGESTION(9002, "Không tìm thấy món ăn phù hợp với nguyên liệu đã nhập");
+    AI_NO_SUGGESTION(9002, "Không tìm thấy món ăn phù hợp với nguyên liệu đã nhập"),
+    SESSION_NOT_FOUND(9003, "Phiên chat không tồn tại"),
+    AI_SERV_ERROR(9004, "Lỗi dịch vụ AI, vui lòng thử lại sau"),
+    AI_NO_SUG(9005, "Không tìm thấy công thức phù hợp"),
+    COMMENT_EMPTY(9006,"Comment trống rỗng"),
+    GUEST_SESSION_EXPIRED(9007,"Phiên chat đã hết hạn, vui lòng bắt đầu cuộc trò chuyện mới"),
+    GUEST_ID_REQUIRED(9008,"Thiếu định danh khách, vui lòng thử lại");
+
 
 
     private final int code;

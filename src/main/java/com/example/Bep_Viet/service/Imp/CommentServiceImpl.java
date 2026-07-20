@@ -19,6 +19,7 @@ import com.example.Bep_Viet.service.CommentService;
 import com.example.Bep_Viet.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -31,9 +32,10 @@ public class CommentServiceImpl implements CommentService {
     private final RecipeRepository recipeRepository;
     private final PostRepository postRepository;
     private final NotificationService notificationService;
+    private final FileStorageService fileStorageService;
 
     @Override
-    public CommentResponse create(CommentRequest request, Long userId) {
+    public CommentResponse create(CommentRequest request, MultipartFile image, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
@@ -43,17 +45,27 @@ public class CommentServiceImpl implements CommentService {
                     .orElseThrow(() -> new AppException(ErrorCode.COMMENT_NOT_FOUND));
         }
 
+        // Upload ảnh (nếu có) trước khi tạo comment
+        String imageUrl = fileStorageService.storeFile(image);
+
+        // Không cho phép comment hoàn toàn rỗng (không chữ, không ảnh)
+        boolean hasContent = request.getContent() != null && !request.getContent().isBlank();
+        if (!hasContent && imageUrl == null) {
+            throw new AppException(ErrorCode.COMMENT_EMPTY);
+        }
+
         Comment comment = Comment.builder()
                 .user(user)
                 .targetId(request.getTargetId())
                 .targetType(request.getTargetType())
                 .parent(parent)
                 .content(request.getContent())
+                .imageUrl(imageUrl)
                 .build();
 
         Comment saved = commentRepository.save(comment);
 
-//        // ─── Gửi thông báo ───────────────────────────────────────
+        // ─── Gửi thông báo ───────────────────────────────────────
         NotificationTargetType notifTargetType = mapToNotifTargetType(request.getTargetType());
 
         if (parent != null) {
@@ -78,9 +90,10 @@ public class CommentServiceImpl implements CommentService {
                 );
             }
         }
+        // ─────────────────────────────────────────────────────────
+
         return mapToResponse(saved);
     }
-
 
     @Override
     public List<CommentResponse> getByTarget(Long targetId, TargetType targetType) {
@@ -151,6 +164,7 @@ public class CommentServiceImpl implements CommentService {
                 .targetType(comment.getTargetType())
                 .parentId(comment.getParent() != null ? comment.getParent().getId() : null)
                 .content(comment.getContent())
+                .imageUrl(comment.getImageUrl())
                 .replies(comment.getReplies().stream().map(this::mapToResponse).toList())
                 .createdAt(comment.getCreatedAt())
                 .updatedAt(comment.getUpdatedAt())

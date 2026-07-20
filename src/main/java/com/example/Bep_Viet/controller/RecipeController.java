@@ -75,12 +75,14 @@ public class RecipeController {
             @PathVariable Long id,
             @AuthenticationPrincipal Long userId) {
 
-
+        // ⭐ Lấy user để check role
         User currentUser = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
+        // ⭐ Check role CỰC ĐƠN GIẢN - không cần stream
         boolean isAdmin = currentUser.getRole() == Role.ADMIN;
 
+        // ⭐ Gọi service
         recipeService.delete(id, userId, isAdmin);
 
         return ResponseEntity.noContent().build();
@@ -96,6 +98,11 @@ public class RecipeController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RecipeResponse> reject(@PathVariable Long id) {
         return ResponseEntity.ok(recipeService.reject(id));
+    }
+    @GetMapping("/for-you")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<RecipeResponse>> getForYou(@AuthenticationPrincipal Long userId) {
+        return ResponseEntity.ok(recipeService.getForYou(userId));
     }
 
     @GetMapping("/status")

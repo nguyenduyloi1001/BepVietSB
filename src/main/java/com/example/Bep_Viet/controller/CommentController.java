@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -30,12 +31,24 @@ public class CommentController {
     }
 
     // POST /api/comments?userId=1
-    @PostMapping
+    @PostMapping(consumes = "multipart/form-data")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<CommentResponse> create(
-            @Valid @RequestBody CommentRequest request,
+            @RequestParam Long targetId,
+            @RequestParam TargetType targetType,
+            @RequestParam(required = false) String content,
+            @RequestParam(required = false) Long parentId,
+            @RequestParam(required = false) MultipartFile image,
             @AuthenticationPrincipal Long userId) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(commentService.create(request, userId));
+
+        CommentRequest request = new CommentRequest();
+        request.setTargetId(targetId);
+        request.setTargetType(targetType);
+        request.setContent(content);
+        request.setParentId(parentId);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(commentService.create(request, image, userId));
     }
 
     // PUT /api/comments/5?userId=1
