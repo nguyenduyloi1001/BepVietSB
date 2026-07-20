@@ -13,7 +13,7 @@ import com.example.Bep_Viet.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.example.Bep_Viet.repository.ShareRepository;
 import java.util.Optional;
 
 @Service
@@ -24,7 +24,7 @@ public class LikeServiceImpl implements LikeService {
     private final RecipeRepository recipeRepository;
     private final PostRepository postRepository;
     private final NotificationService notificationService;
-
+    private final ShareRepository shareRepository;
     @Override
     @Transactional
     public LikeResponse toggle(Long userId, LikeRequest request) {
@@ -95,13 +95,16 @@ public class LikeServiceImpl implements LikeService {
             return postRepository.findById(targetId)
                     .map(p -> p.getUser().getId())
                     .orElse(null);
-        }
+        } else if (type == Like.TargetType.share) {
+            return shareRepository.findById(targetId).map(s -> s.getUser().getId()).orElse(null);}
+            // owner ở đây là người đã share, không phải tác giả recipe/post gốc
         return null;
     }
 
     private NotificationTargetType mapToNotifTargetType(Like.TargetType type) {
         if (type == Like.TargetType.recipe)  return NotificationTargetType.recipe;
         if (type == Like.TargetType.post)    return NotificationTargetType.post;
+        if (type == Like.TargetType.share)  return NotificationTargetType.share;
         return NotificationTargetType.post;
     }
 }

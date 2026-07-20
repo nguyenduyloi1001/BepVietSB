@@ -33,6 +33,6 @@ public class Like {
     }
 
     public enum TargetType {
-        recipe, post, comment
+        recipe, post, comment, share
     }
 }

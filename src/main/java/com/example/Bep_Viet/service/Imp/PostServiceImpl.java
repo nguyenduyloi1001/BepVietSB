@@ -2,16 +2,15 @@ package com.example.Bep_Viet.service.Imp;
 
 import com.example.Bep_Viet.enums.PostStatus;
 import com.example.Bep_Viet.enums.PostType;
+import com.example.Bep_Viet.enums.TargetType;
 import com.example.Bep_Viet.exception.AppException;
 import com.example.Bep_Viet.exception.ErrorCode;
 import com.example.Bep_Viet.model.Post;
 import com.example.Bep_Viet.model.User;
-import com.example.Bep_Viet.repository.CommentRepository;
-import com.example.Bep_Viet.repository.LikeRepository;
-import com.example.Bep_Viet.repository.PostRepository;
-import com.example.Bep_Viet.repository.UserRepository;
+import com.example.Bep_Viet.repository.*;
 import com.example.Bep_Viet.request.PostRequest;
 import com.example.Bep_Viet.response.PostResponse;
+import com.example.Bep_Viet.service.LikeService;
 import com.example.Bep_Viet.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +25,7 @@ public class PostServiceImpl implements PostService {
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
+    private final ShareRepository shareRepository;
     @Override
     public PostResponse create(PostRequest request, Long userId) {
         User user = userRepository.findById(userId).orElseThrow(()-> new AppException(ErrorCode.USER_NOT_FOUND));
@@ -95,7 +95,7 @@ public class PostServiceImpl implements PostService {
         if(!isAdmin && !post.getUser().getId().equals(currentUserId)){
             throw new AppException(ErrorCode.FORBIDDEN);
         }
-
+        shareRepository.deleteByTargetIdAndTargetType(id, TargetType.POST);
 //        commentRepository.deleteByPostId(id);
 //        likeRepository.deleteByPostId(id);
 

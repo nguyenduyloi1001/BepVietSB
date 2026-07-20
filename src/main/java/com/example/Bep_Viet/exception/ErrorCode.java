@@ -58,9 +58,17 @@ public enum ErrorCode {
     NOT_ENOUGH_RECIPES(8007, "Bạn chưa đủ số công thức yêu cầu"),
     NOT_ENOUGH_RATING(8008, "Điểm đánh giá trung bình chưa đủ yêu cầu"),
     AI_SERVICE_ERROR(9001, "Lỗi khi gọi AI, vui lòng thử lại sau"),
-    AI_NO_SUGGESTION(9002, "Không tìm thấy món ăn phù hợp với nguyên liệu đã nhập");
-
-
+    AI_NO_SUGGESTION(9002, "Không tìm thấy món ăn phù hợp với nguyên liệu đã nhập"),
+    RECIPE_SHARE_NOT_FOUND(10001, "Không tìm thấy bản đăng lại"),
+    RECIPE_SHARE_ALREADY_EXISTS(10002, "Bạn đã đăng lại công thức này rồi"),
+    RECIPE_SHARE_SELF_NOT_ALLOWED(10003, "Không thể đăng lại công thức của chính mình"),
+    RECIPE_SHARE_NOT_PUBLISHED(10004, "Công thức này chưa được công khai, không thể đăng lại"),
+    RECIPE_SHARE_FORBIDDEN(10005, "Bạn không có quyền xoá bản đăng lại này"),
+    POST_SHARE_NOT_FOUND(10006, "Không tìm thấy bản đăng lại"),
+    POST_SHARE_ALREADY_EXISTS(10007, "Bạn đã đăng lại bài viết này rồi"),
+    POST_SHARE_SELF_NOT_ALLOWED(10008, "Không thể đăng lại bài viết của chính mình"),
+    POST_SHARE_NOT_PUBLISHED(10009, "Bài viết này chưa được công khai, không thể đăng lại"),
+    POST_SHARE_FORBIDDEN(10010, "Bạn không có quyền xoá bản đăng lại này");
     private final int code;
     private final String message;
 

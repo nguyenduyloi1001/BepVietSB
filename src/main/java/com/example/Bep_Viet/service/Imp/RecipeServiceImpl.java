@@ -1,6 +1,7 @@
 package com.example.Bep_Viet.service.Imp;
 
 import com.example.Bep_Viet.enums.RecipeStatus;
+import com.example.Bep_Viet.enums.TargetType;
 import com.example.Bep_Viet.exception.AppException;
 import com.example.Bep_Viet.exception.ErrorCode;
 import com.example.Bep_Viet.model.Category;
@@ -32,7 +33,7 @@ public class RecipeServiceImpl implements RecipeService {
     private final RecipeStepService recipeStepService;
     private final RatingRepository ratingRepository;
     private final MealPlanItemRepository mealPlanItemRepository;
-
+    private final ShareRepository   shareRepository;
     private static final int CHEF_PRIORITY_DAYS = 30;
 
     @Override
@@ -150,7 +151,7 @@ public class RecipeServiceImpl implements RecipeService {
         if(!isAdmin && !recipe.getUser().getId().equals(currentUserId)){
             throw new AppException(ErrorCode.RECIPE_FORBIDDEN);
         }
-
+        shareRepository.deleteByTargetIdAndTargetType(id, TargetType.RECIPE);
         mealPlanItemRepository.deleteByRecipeId(id);
         ratingRepository.deleteByRecipeId(id);
         repository.delete(recipe);
