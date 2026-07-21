@@ -64,7 +64,17 @@ public enum ErrorCode {
     AI_NO_SUG(9005, "Không tìm thấy công thức phù hợp"),
     COMMENT_EMPTY(9006,"Comment trống rỗng"),
     GUEST_SESSION_EXPIRED(9007,"Phiên chat đã hết hạn, vui lòng bắt đầu cuộc trò chuyện mới"),
-    GUEST_ID_REQUIRED(9008,"Thiếu định danh khách, vui lòng thử lại");
+    GUEST_ID_REQUIRED(9008,"Thiếu định danh khách, vui lòng thử lại"),
+    RECIPE_SHARE_NOT_PUBLISHED(9009, "Công thức này chưa được đăng, không thể chia sẻ"),
+    RECIPE_SHARE_SELF_NOT_ALLOWED(9010, "Bạn không thể tự chia sẻ công thức của chính mình"),
+    RECIPE_SHARE_ALREADY_EXISTS(9011, "Bạn đã chia sẻ công thức này rồi"),
+    RECIPE_SHARE_NOT_FOUND(9012, "Không tìm thấy lượt chia sẻ công thức này"),
+    RECIPE_SHARE_FORBIDDEN(9013, "Bạn không có quyền thao tác với lượt chia sẻ này"),
+    POST_SHARE_NOT_PUBLISHED(9014, "Bài viết này chưa được đăng, không thể chia sẻ"),
+    POST_SHARE_SELF_NOT_ALLOWED(9015, "Bạn không thể tự chia sẻ bài viết của chính mình"),
+    POST_SHARE_ALREADY_EXISTS(9016, "Bạn đã chia sẻ bài viết này rồi"),
+    POST_SHARE_NOT_FOUND(9017, "Không tìm thấy lượt chia sẻ bài viết này"),
+    POST_SHARE_FORBIDDEN(9018, "Bạn không có quyền thao tác với lượt chia sẻ này");
 
 
 
