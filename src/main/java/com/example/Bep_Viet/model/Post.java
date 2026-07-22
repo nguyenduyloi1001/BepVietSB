@@ -40,6 +40,9 @@ public class Post {
     @Enumerated(EnumType.STRING)
     private PostStatus postStatus = PostStatus.PENDING;
 
+    @Column(name = "original_recipe_id")
+    private Long originalRecipeId;
+
     @Column(name = "view_count")
     private Integer viewCount = 0;
 

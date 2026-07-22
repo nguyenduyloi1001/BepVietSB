@@ -22,4 +22,9 @@ public class PostResponse {
     private Integer viewCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    private Long originalRecipeId;
+    private String originalRecipeName;
+    private String originalRecipeImage;
+    private String originalRecipeSlug;
 }
