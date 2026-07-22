@@ -5,5 +5,6 @@ public enum PostType {
     BLOG,
     REVIEW,
     TIP,
-    OTHER
+    OTHER,
+    SHARED_RECIPE
 }
