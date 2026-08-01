@@ -23,6 +23,7 @@ public class PostResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    //dang lai recipe
     private Long originalRecipeId;
     private String originalRecipeName;
     private String originalRecipeImage;

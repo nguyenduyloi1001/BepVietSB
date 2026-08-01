@@ -408,8 +408,6 @@ public class AiChatServiceImpl implements AiChatService {
                 .distinct()
                 .toList();
 
-        // ⭐ SỬA: exact match trước, nếu không có thì fallback sang match theo từ-đầu
-        // (fix bug "cá" không match được vì DB chỉ có tên cụ thể như "Cá lóc", "Cá thu"...)
         List<String> expandedIngredients = keywords.stream()
                 .flatMap(keyword -> {
                     Optional<Ingredient> exact = ingredientRepository.findByNameIgnoreCase(keyword);
@@ -434,7 +432,6 @@ public class AiChatServiceImpl implements AiChatService {
             dietMode = "MAN";
         }
 
-        // ⭐ MỚI: map region sang regionMode dùng cho query findCandidatesByIngredients
         String regionMode = "ANY";
         if ("bac".equals(regionRaw)) {
             regionMode = "BAC";
@@ -656,7 +653,7 @@ public class AiChatServiceImpl implements AiChatService {
            => intent = "recipe_suggestion", filters.ingredients = [],
            filters.sort_by = "most_liked"
 
-        ⭐ MỚI - Quy tắc region (vùng miền):
+        MỚI - Quy tắc region (vùng miền):
         - Trả "bac" nếu user nói "miền Bắc", "món Bắc", "ẩm thực Bắc Bộ", "Hà Nội"...
         - Trả "trung" nếu user nói "miền Trung", "món Huế", "Đà Nẵng"...
         - Trả "nam" nếu user nói "miền Nam", "món Nam Bộ", "Sài Gòn"...

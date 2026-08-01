@@ -12,7 +12,6 @@ import com.example.Bep_Viet.model.User;
 import com.example.Bep_Viet.repository.*;
 import com.example.Bep_Viet.request.PostRequest;
 import com.example.Bep_Viet.response.PostResponse;
-import com.example.Bep_Viet.service.LikeService;
 import com.example.Bep_Viet.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -155,6 +154,8 @@ public class PostServiceImpl implements PostService {
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
                 .originalRecipeId(post.getOriginalRecipeId());
+
+        // Nếu post này được share từ 1 recipe -> gắn kèm info recipe gốc để FE hiện preview card
         if (post.getOriginalRecipeId() != null) {
             recipeRepository.findById(post.getOriginalRecipeId()).ifPresent(r -> {
                 builder.originalRecipeName(r.getName());
