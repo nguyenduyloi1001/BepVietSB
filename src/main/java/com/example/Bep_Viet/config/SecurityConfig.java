@@ -70,7 +70,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:3000"));
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "https://bepviet-demo-nine.vercel.app"
+        ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         // 💡 Mẹo nhỏ: Bạn nên để "*" ở AllowedHeaders để chấp nhận mọi loại Header từ Frontend gửi lên sau này đỡ phải cấu hình lại
         configuration.setAllowedHeaders(Arrays.asList("*"));
