@@ -2,15 +2,16 @@ package com.example.Bep_Viet.service.Imp;
 
 import com.example.Bep_Viet.enums.PostStatus;
 import com.example.Bep_Viet.enums.PostType;
+import com.example.Bep_Viet.enums.RecipeStatus;
 import com.example.Bep_Viet.enums.TargetType;
 import com.example.Bep_Viet.exception.AppException;
 import com.example.Bep_Viet.exception.ErrorCode;
 import com.example.Bep_Viet.model.Post;
+import com.example.Bep_Viet.model.Recipe;
 import com.example.Bep_Viet.model.User;
 import com.example.Bep_Viet.repository.*;
 import com.example.Bep_Viet.request.PostRequest;
 import com.example.Bep_Viet.response.PostResponse;
-import com.example.Bep_Viet.service.LikeService;
 import com.example.Bep_Viet.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,18 +27,40 @@ public class PostServiceImpl implements PostService {
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
     private final ShareRepository shareRepository;
+    private final RecipeRepository recipeRepository; // ← thêm mới, để lấy info recipe gốc
+
     @Override
     public PostResponse create(PostRequest request, Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(()-> new AppException(ErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        PostType type = request.getType();
+        Recipe recipe = null;
+
+        // Nếu là post chia sẻ từ recipe -> validate + ép type
+        if (request.getOriginalRecipeId() != null) {
+            recipe = recipeRepository.findById(request.getOriginalRecipeId())
+                    .orElseThrow(() -> new AppException(ErrorCode.RECIPE_NOT_FOUND));
+
+            if (recipe.getStatus() != RecipeStatus.PUBLISHED) {
+                throw new AppException(ErrorCode.RECIPE_SHARE_NOT_PUBLISHED);
+            }
+
+            type = PostType.SHARED_RECIPE;
+        }
+
         Post post = Post.builder()
                 .user(user)
                 .title(request.getTitle())
                 .content(request.getContent())
-                .thumbnail(request.getThumbnail())
-                .postType(request.getType())
+                .thumbnail(request.getThumbnail() != null
+                        ? request.getThumbnail()
+                        : (recipe != null ? recipe.getImageUrl() : null))
+                .postType(type)
                 .postStatus(PostStatus.PENDING)
+                .originalRecipeId(request.getOriginalRecipeId())
                 .viewCount(0)
                 .build();
+
         return mapToResponse(postRepository.save(post));
     }
 
@@ -55,7 +78,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public List<PostResponse> getByUserId(Long userId) {
-        User user = userRepository.findById(userId).orElseThrow(()-> new AppException(ErrorCode.USER_NOT_FOUND));
+        User user = userRepository.findById(userId).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         return postRepository.findByUserId(userId).stream().map(this::mapToResponse).toList();
     }
 
@@ -72,7 +95,6 @@ public class PostServiceImpl implements PostService {
     @Override
     public PostResponse update(Long id, PostRequest request, Long currentUserId) {
         Post post = findById(id);
-
 
         if (!post.getUser().getId().equals(currentUserId)) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
@@ -92,14 +114,11 @@ public class PostServiceImpl implements PostService {
     public void delete(Long id, Long currentUserId, boolean isAdmin) {
         Post post = findById(id);
 
-        if(!isAdmin && !post.getUser().getId().equals(currentUserId)){
+        if (!isAdmin && !post.getUser().getId().equals(currentUserId)) {
             throw new AppException(ErrorCode.FORBIDDEN);
         }
         shareRepository.deleteByTargetIdAndTargetType(id, TargetType.POST);
-//        commentRepository.deleteByPostId(id);
-//        likeRepository.deleteByPostId(id);
 
-        // Xóa post
         postRepository.delete(post);
     }
 
@@ -117,12 +136,12 @@ public class PostServiceImpl implements PostService {
         return mapToResponse(postRepository.save(post));
     }
 
-    private Post findById(Long id){
-        return postRepository.findById(id).orElseThrow(()->new AppException(ErrorCode.POST_NOT_FOUND));
+    private Post findById(Long id) {
+        return postRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
     }
 
     private PostResponse mapToResponse(Post post) {
-        return PostResponse.builder()
+        PostResponse.PostResponseBuilder builder = PostResponse.builder()
                 .id(post.getId())
                 .userId(post.getUser().getId())
                 .userName(post.getUser().getUsername())
@@ -134,6 +153,17 @@ public class PostServiceImpl implements PostService {
                 .viewCount(post.getViewCount())
                 .createdAt(post.getCreatedAt())
                 .updatedAt(post.getUpdatedAt())
-                .build();
+                .originalRecipeId(post.getOriginalRecipeId());
+
+        // Nếu post này được share từ 1 recipe -> gắn kèm info recipe gốc để FE hiện preview card
+        if (post.getOriginalRecipeId() != null) {
+            recipeRepository.findById(post.getOriginalRecipeId()).ifPresent(r -> {
+                builder.originalRecipeName(r.getName());
+                builder.originalRecipeImage(r.getImageUrl());
+                builder.originalRecipeSlug(r.getSlug());
+            });
+        }
+
+        return builder.build();
     }
 }
