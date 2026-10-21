@@ -4,25 +4,42 @@ import com.example.Bep_Viet.enums.OtpType;
 import com.example.Bep_Viet.model.OtpVerification;
 import com.example.Bep_Viet.repository.OtpVerificationRepository;
 import com.example.Bep_Viet.service.OtpService;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.security.SecureRandom;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Random;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OtpServiceImpl implements OtpService {
     private final OtpVerificationRepository otpRepo;
-    private final JavaMailSender mailSender;
+
+    @Value("${brevo.api-key:}")
+    private String apiKey;
+
+    @Value("${mail.from:}")
+    private String fromEmail;
+
+    @Value("${mail.from-name:Bep Viet}")
+    private String fromName;
 
     private static final int OTP_EXPIRE_MINUTES = 5;
+    private static final String BREVO_URL = "https://api.brevo.com/v3/smtp/email";
+    private static final SecureRandom RANDOM = new SecureRandom();
+    private static final HttpClient HTTP = HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(10))
+            .build();
 
     @Transactional
     public void sendOtp(String email, OtpType type) {
@@ -30,7 +47,7 @@ public class OtpServiceImpl implements OtpService {
         otpRepo.deleteByEmailAndType(email, type);
 
         // Tạo OTP 6 số
-        String otp = String.format("%06d", new Random().nextInt(999999));
+        String otp = String.format("%06d", RANDOM.nextInt(1_000_000));
 
         OtpVerification entity = new OtpVerification();
         entity.setEmail(email);
@@ -59,6 +76,10 @@ public class OtpServiceImpl implements OtpService {
     }
 
     private void sendEmail(String to, String otp, OtpType type) {
+        if (apiKey == null || apiKey.isBlank() || fromEmail == null || fromEmail.isBlank()) {
+            throw new RuntimeException("Thiếu BREVO_API_KEY hoặc MAIL_FROM");
+        }
+
         String subject = type == OtpType.REGISTER
                 ? "[Bếp Việt] Mã xác nhận đăng ký"
                 : "[Bếp Việt] Mã xác nhận đặt lại mật khẩu";
@@ -79,15 +100,54 @@ public class OtpServiceImpl implements OtpService {
                 otp
         );
 
-        MimeMessage message = mailSender.createMimeMessage();
+        String json = "{"
+                + "\"sender\":{\"name\":\"" + esc(fromName) + "\",\"email\":\"" + esc(fromEmail.trim()) + "\"},"
+                + "\"to\":[{\"email\":\"" + esc(to) + "\"}],"
+                + "\"subject\":\"" + esc(subject) + "\","
+                + "\"htmlContent\":\"" + esc(body) + "\""
+                + "}";
+
         try {
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(body, true);
-            mailSender.send(message);
-        } catch (MessagingException e) {
-            throw new RuntimeException("Không thể gửi email: " + e.getMessage());
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(BREVO_URL))
+                    .timeout(Duration.ofSeconds(10))
+                    .header("api-key", apiKey.trim())
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .build();
+
+            HttpResponse<String> res = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
+            if (res.statusCode() / 100 != 2) {
+                log.error("Brevo trả về {}: {}", res.statusCode(), res.body());
+                throw new RuntimeException("Không thể gửi email");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Không thể gửi email");
+        } catch (java.io.IOException e) {
+            log.error("Gửi mail lỗi: {}", e.getMessage());
+            throw new RuntimeException("Không thể gửi email");
         }
+    }
+
+    // Escape chuỗi để nhúng an toàn vào JSON
+    private static String esc(String s) {
+        if (s == null) return "";
+        StringBuilder sb = new StringBuilder();
+        for (char c : s.toCharArray()) {
+            switch (c) {
+                case '"' -> sb.append("\\\"");
+                case '\\' -> sb.append("\\\\");
+                case '\n' -> sb.append("\\n");
+                case '\r' -> sb.append("\\r");
+                case '\t' -> sb.append("\\t");
+                default -> {
+                    if (c < 0x20) sb.append(String.format("\\u%04x", (int) c));
+                    else sb.append(c);
+                }
+            }
+        }
+        return sb.toString();
     }
 }
